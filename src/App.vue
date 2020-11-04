@@ -7,14 +7,28 @@
 			<div class="large-spacing"></div>
 
 			<div class="title">
-				<span class="title">Music Title</span>
+				<span class="title">{{ current.title }} - {{ current.artist }}</span>
 			</div>
 			<div class="small-spacing"></div>
 			<div class="control">
-				<button id="small-button">Prev</button>
-				<button id="large-button">Play</button>
-				<button id="small-button">Next</button>
+				<button id="small-button" @click="prev">Prev</button>
+				<button id="large-button" v-if="!isPlaying" @click="play">
+					Play
+				</button>
+				<button id="large-button" v-else @click="pause">Pause</button>
+				<button id="small-button" @click="next">Next</button>
 			</div>
+			<div class="large-spacing"></div>
+			<div class="playlist">Playlist</div>
+			<div class="small-spacing"></div>
+			<button
+				v-for="song in songs"
+				:key="song.src"
+				@click="play(song)"
+				:class="song.src == current.src ? 'song playing' : 'song'"
+			>
+				{{ song.title }} - {{ song.artist }}}
+			</button>
 		</div>
 	</div>
 </template>
@@ -23,6 +37,65 @@
 export default {
 	name: "App",
 	components: {},
+	data() {
+		return {
+			current: {},
+			index: 0,
+			isPlaying: false,
+			songs: [
+				{
+					title: "Bad Influence",
+					artist: "Omah Lay",
+					src: require("./assets/Bad-Influence.mp3"),
+				},
+				{
+					title: "Lo Lo",
+					artist: "Omah Lay",
+					src: require("./assets/Omah-Lay-Lo-Lo.mp3"),
+				},
+				{
+					title: "You",
+					artist: "Omah Lay",
+					src: require("./assets/OmahLay-You.mp3"),
+				},
+			],
+			player: new Audio(),
+		};
+	},
+	methods: {
+		play(song) {
+			if (typeof song.src != "undefined") {
+				this.current = song;
+				this.player.src = this.current.src;
+			}
+			this.player.play();
+			this.isPlaying = true;
+		},
+		pause() {
+			this.player.pause();
+			this.isPlaying = false;
+		},
+		next() {
+			this.index++;
+			if (this.index > this.songs.length - 1) {
+				this.index = 0;
+			}
+			this.current = this.songs[this.index];
+			this.play(this.current);
+		},
+		prev() {
+			this.index--;
+			if (this.index < 0) {
+				this.index = this.songs.length - 1;
+			}
+			this.current = this.songs[this.index];
+			this.play(this.current);
+		},
+	},
+	created() {
+		this.current = this.songs[this.index];
+		this.player.src = this.current.src;
+	},
 };
 </script>
 
@@ -44,6 +117,11 @@ export default {
 .control {
 	display: flex;
 	justify-content: center;
+}
+.playlist {
+	text-align: center;
+	font-size: 2rem;
+	font-weight: 600;
 }
 .large-spacing {
 	margin-top: 4rem;
@@ -73,7 +151,7 @@ button {
 #small-button {
 	background: #ff4587;
 	color: white;
-	font-size: 14px;
+	font-size: 13px;
 	font-weight: 700;
 	padding: 0.4rem 1.2rem 0.4rem 1.2rem !important;
 }
